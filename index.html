@@ -76,23 +76,6 @@ h1{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;color:var(--text);margin-bot
 </head>
 <body>
 
-<div id="debug-overlay" style="position:fixed;top:0;left:0;width:100%;background:#fff;z-index:99999;padding:20px;font-size:16px;font-family:sans-serif;">
-  <b>⏳ Загрузка...</b>
-  <div id="debug-log" style="margin-top:10px;font-size:13px;color:#333;"></div>
-</div>
-<script>
-var dbg = document.getElementById('debug-log');
-function log(msg){ dbg.innerHTML += '<div>' + msg + '</div>'; }
-window.onerror = function(msg,src,line){ log('❌ JS ERROR: ' + msg + ' (line ' + line + ')'); return false; };
-window.addEventListener('unhandledrejection', function(e){ log('❌ PROMISE ERROR: ' + e.reason); });
-log('✅ HTML загружен');
-document.addEventListener('DOMContentLoaded', function(){
-  log('✅ DOM ready');
-  setTimeout(function(){
-    document.getElementById('debug-overlay').style.display='none';
-  }, 3000);
-});
-</script>
 
 <button class="theme-toggle" data-theme-toggle aria-label="Переключить тему">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
