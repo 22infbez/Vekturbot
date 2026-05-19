@@ -196,7 +196,13 @@ h1{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;color:var(--text);margin-bot
   <div id="res-header" style="background:#e8e8e8;padding:8px 16px;font-family:'Courier New',Courier,monospace;font-size:1.05rem;font-weight:bold;border-bottom:1px solid #ccc;">Результаты теста:</div>
   <div id="result-content" style="padding:10px 40px 60px 40px;font-family:'Courier New',Courier,monospace;font-size:0.97rem;line-height:1.55;white-space:pre-wrap;overflow-y:auto;max-height:370px;"></div>
   <button onclick="restart()" style="position:absolute;bottom:12px;right:12px;width:44px;height:32px;border:1px solid #999;background:#fff;cursor:pointer;font-size:1rem;font-family:inherit;display:flex;align-items:center;justify-content:center;" title="Начать заново">⟲</button>
-  <button id="btn-send-tg" onclick="sendDataToTelegram()" style="display:none;position:absolute;bottom:12px;left:12px;padding:6px 16px;background:#229ED9;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.95rem;font-family:inherit;">
+</div>
+<!-- Кнопка отправки — ВНЕ блока результата -->
+<div id="wrap-send-tg" style="display:none;margin-top:16px;text-align:center;">
+  <button id="btn-send-tg" onclick="sendDataToTelegram()"
+    style="padding:12px 32px;background:#229ED9;color:#fff;border:none;border-radius:8px;
+           cursor:pointer;font-size:1rem;font-family:inherit;font-weight:600;
+           width:100%;max-width:320px;-webkit-tap-highlight-color:rgba(0,0,0,0.1);">
     ✈️ Отправить результат
   </button>
 </div>
@@ -770,8 +776,13 @@ function showResult(bestSubs) {
   showScreen('screen-result');
   // Сохраняем для отправки
   window._tgResult = { bestSubs: bestSubs, finalText: finalText.trim() };
-  var btn = document.getElementById('btn-send-tg');
-  if (btn) btn.style.display = 'block';
+  var wrap = document.getElementById('wrap-send-tg');
+  if (wrap) wrap.style.display = 'block';
+  // Показываем MainButton в TG
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg && tg.MainButton) {
+    tg.MainButton.show();
+  }
 }
 
 function buildComboDescriptions(bestSubs) {
@@ -824,7 +835,7 @@ function restart() {
 })();
 
 // ── Telegram WebApp отправка ──────────────────────────────
-function sendDataToTelegram() {
+function buildPayload() {
   var r = window._tgResult || {};
   var bestSubs = r.bestSubs || {};
   var subs = [];
@@ -834,7 +845,7 @@ function sendDataToTelegram() {
       if (label && subs.indexOf(label) < 0) subs.push(label);
     }
   }
-  var payload = {
+  return {
     fio:   userData ? (userData.fio || '') : '',
     pol:   userData ? (userData.pol || '') : '',
     vozr:  userData ? (userData.vozr || '') : '',
@@ -844,19 +855,46 @@ function sendDataToTelegram() {
     res2:  subs.join(', '),
     result_text: r.finalText || ''
   };
+}
+
+function sendDataToTelegram() {
+  var payload = buildPayload();
+  var json = JSON.stringify(payload);
   var tg = window.Telegram && window.Telegram.WebApp;
-  if (tg && tg.sendData) {
-    tg.sendData(JSON.stringify(payload));
+
+  if (tg) {
+    // Используем MainButton если sendData недоступен
+    if (typeof tg.sendData === 'function') {
+      try {
+        tg.sendData(json);
+        return;
+      } catch(e) {
+        console.error('sendData error:', e);
+      }
+    }
+    // Fallback: показываем результат и закрываем
+    alert('✅ Результат:\n' + payload.res1 + '\n' + payload.res2 + '\n\nСкопируйте и отправьте боту.');
   } else {
-    alert('Результат:\n' + payload.res1 + '\n' + payload.res2);
+    alert('✅ Результат:\n' + payload.res1 + '\n' + payload.res2);
   }
 }
 
 // Инит TG WebApp
 (function(){
-  if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    // Настраиваем MainButton как дополнительный способ отправки
+    if (tg.MainButton) {
+      tg.MainButton.setText('✈️ Отправить результат');
+      tg.MainButton.onClick(function(){
+        var payload = buildPayload();
+        if (payload.res1) {
+          tg.sendData(JSON.stringify(payload));
+        }
+      });
+    }
   }
 })();
 
