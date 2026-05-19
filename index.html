@@ -192,19 +192,21 @@ h1{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;color:var(--text);margin-bot
 </div>
 
 <!-- ЭКРАН 3: Итоговые результаты -->
-<div class="screen" id="screen-result" style="background:#fff;padding:0;max-width:820px;margin:0 auto;position:relative;min-height:430px;border:1px solid #ccc;font-family:'Courier New',Courier,monospace;">
+<div class="screen" id="screen-result" style="background:#fff;padding:0;max-width:820px;margin:0 auto;position:relative;border:1px solid #ccc;font-family:'Courier New',Courier,monospace;">
   <div id="res-header" style="background:#e8e8e8;padding:8px 16px;font-family:'Courier New',Courier,monospace;font-size:1.05rem;font-weight:bold;border-bottom:1px solid #ccc;">Результаты теста:</div>
-  <div id="result-content" style="padding:10px 40px 60px 40px;font-family:'Courier New',Courier,monospace;font-size:0.97rem;line-height:1.55;white-space:pre-wrap;overflow-y:auto;max-height:370px;"></div>
-  <button onclick="restart()" style="position:absolute;bottom:12px;right:12px;width:44px;height:32px;border:1px solid #999;background:#fff;cursor:pointer;font-size:1rem;font-family:inherit;display:flex;align-items:center;justify-content:center;" title="Начать заново">⟲</button>
-</div>
-<!-- Кнопка отправки — ВНЕ блока результата -->
-<div id="wrap-send-tg" style="display:none;margin-top:16px;text-align:center;">
-  <button id="btn-send-tg" onclick="sendDataToTelegram()"
-    style="padding:12px 32px;background:#229ED9;color:#fff;border:none;border-radius:8px;
-           cursor:pointer;font-size:1rem;font-family:inherit;font-weight:600;
-           width:100%;max-width:320px;-webkit-tap-highlight-color:rgba(0,0,0,0.1);">
-    ✈️ Отправить результат
-  </button>
+  <div id="result-content" style="padding:10px 16px;font-family:'Courier New',Courier,monospace;font-size:0.97rem;line-height:1.55;white-space:pre-wrap;overflow-y:auto;max-height:50vh;"></div>
+  <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid #ccc;">
+    <button id="btn-send-tg" onclick="sendDataToTelegram()"
+      style="flex:1;padding:10px;background:#229ED9;color:#fff;border:none;border-radius:6px;
+             cursor:pointer;font-size:0.95rem;font-family:inherit;font-weight:600;
+             touch-action:manipulation;">
+      ✈️ Отправить результат
+    </button>
+    <button onclick="restart()"
+      style="width:44px;padding:10px;border:1px solid #999;background:#fff;
+             cursor:pointer;font-size:1rem;font-family:inherit;border-radius:6px;
+             touch-action:manipulation;" title="Начать заново">⟲</button>
+  </div>
 </div>
 
 <script>
@@ -776,8 +778,7 @@ function showResult(bestSubs) {
   showScreen('screen-result');
   // Сохраняем для отправки
   window._tgResult = { bestSubs: bestSubs, finalText: finalText.trim() };
-  var wrap = document.getElementById('wrap-send-tg');
-  if (wrap) wrap.style.display = 'block';
+  // кнопка всегда видна в блоке результата
   // Показываем MainButton в TG
   var tg = window.Telegram && window.Telegram.WebApp;
   if (tg && tg.MainButton) {
